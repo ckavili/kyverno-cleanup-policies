@@ -1,0 +1,44 @@
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: scale-down-gpu-deployment
+spec:
+  rules:
+    - name: rscale-down-gpu-deployment-if-pod-time-greater-3h
+      match:
+        resources:
+          kinds:
+            - Pod
+      preconditions:
+        all:
+          - key: "{{ request.object.spec.tolerations[].key || ''}}"
+            operator: AnyIn
+            value:
+              - nvidia.com/gpu
+          - key: "{{ time_since('', '{{ request.object.metadata.creationTimestamp }}', '') }}"
+            operator: GreaterThanOrEquals
+            value: 3h
+          - key: "{{ request.object.metadata.namespace }}"
+            operator: AnyNotIn
+            value:
+              - "openshift-*" # add more namespace if needed
+              - "llm-hosting"
+              - "rhoai-bu-services"
+              - "cert-manager*"
+              - "kube-*"
+              - "knative*"
+              - "istio-system"
+              - "image-generation"
+              - "nvidia-gpu-operator"
+              - "redhat-ods-*"
+              - "rhods-notebooks"
+              - "*-operator"
+      mutate:
+        target:
+          apiVersion: apps/v1
+          kind: Deployment
+          name: "{{ request.object.metadata.ownerReferences[0].name }}"
+        patchStrategicMerge:
+          spec:
+            replicas: 0
