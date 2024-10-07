@@ -1,0 +1,28 @@
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: shutdown-notebooks-after-5pm
+spec:
+  rules:
+    - name: shutdown-notebooks-after-5pm
+      match:
+        any:
+        - resources:
+            kinds:
+              - Notebook
+            namespaces:
+              - mynamespace # to check specific namespaces
+      preconditions:
+        all:
+          # Get the hour of the current time
+        - key: "{{ time_now_utc().time_to_cron(@).split(@,' ') | [1].to_number(@) }}"
+          operator: GreaterThan
+          # 5pm CEST, in UTC
+          value: 15
+      mutate:
+        patchesJson6902: |-
+          - op: add
+            path: /metadata/annotations/kubeflow-resource-stopped
+            value: '{{ time_now_utc() }}'
+

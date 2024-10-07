@@ -5,7 +5,7 @@ metadata:
   name: scale-down-gpu-deployment
 spec:
   rules:
-    - name: rscale-down-gpu-deployment-if-pod-time-greater-3h
+    - name: scale-down-gpu-deployment-if-pod-time-greater-3h
       match:
         resources:
           kinds:
@@ -38,7 +38,7 @@ spec:
         target:
           apiVersion: apps/v1
           kind: Deployment
-          name: "{{ request.object.metadata.ownerReferences[0].name }}"
+          name: "{{ request.object.metadata.ownerReferences[0].name | split(@, '-') | slice(0, -1) | join(@, '-') }}"
         patchStrategicMerge:
           spec:
             replicas: 0
