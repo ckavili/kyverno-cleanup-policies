@@ -13,7 +13,7 @@ spec:
               - Notebook
       preconditions:
         all:
-          # Get the hour of the current time
+          # Get the number of active hours of the Notebook
         - key: "{{  request.object.status.containerState.running.startedAt |  time_to_cron(@).split(@,' ') | [1].to_number(@) }}"
           operator: GreaterThan
           # 5pm CEST, in UTC
