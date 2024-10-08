@@ -1,0 +1,41 @@
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: shutdown-notebooks-after-3h-run
+spec:
+  rules:
+    - name: shutdown-notebooks-after-3h-run
+      match:
+        any:
+        - resources:
+            kinds:
+              - Notebook
+      preconditions:
+        all:
+          # Get the hour of the current time
+        - key: "{{  request.object.status.containerState.running.startedAt |  time_to_cron(@).split(@,' ') | [1].to_number(@) }}"
+          operator: GreaterThan
+          # 5pm CEST, in UTC
+          value: 3
+        - key: "{{ request.object.metadata.namespace }}"
+            operator: AnyNotIn
+            value:
+              - "openshift-*" # add more namespace if needed
+              - "llm-hosting"
+              - "rhoai-bu-services"
+              - "cert-manager*"
+              - "kube-*"
+              - "knative*"
+              - "istio-system"
+              - "image-generation"
+              - "nvidia-gpu-operator"
+              - "redhat-ods-*"
+              - "rhods-notebooks"
+              - "*-operator"
+      mutate:
+        patchesJson6902: |-
+          - op: add
+            path: /metadata/annotations/kubeflow-resource-stopped
+            value: '{{ time_now_utc() }}'
+
