@@ -13,10 +13,6 @@ spec:
               - Notebook
       preconditions:
         all:
-          # Get the number of active hours of the Notebook
-        - key: "{{  request.object.status.containerState.running.startedAt |  time_to_cron(@).split(@,' ') | [1].to_number(@) }}"
-          operator: GreaterThan
-          value: 3
         - key: "{{ request.object.metadata.namespace }}"
             operator: AnyNotIn
             value:
@@ -32,6 +28,10 @@ spec:
               - "redhat-ods-*"
               - "rhods-notebooks"
               - "*-operator"
+          # Get the number of active hours of the Notebook
+        - key: "{{  subtract('{{ time_now_utc().time_to_cron(@).split(@,' ') | [1].to_number(@) }}', '{{ request.object.status.containerState.running.startedAt |  time_to_cron(@).split(@,' ') | [1].to_number(@)) }}') }}"
+          operator: GreaterThan
+          value: 3
       mutate:
         patchesJson6902: |-
           - op: add
