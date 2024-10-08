@@ -29,9 +29,9 @@ spec:
               - "rhods-notebooks"
               - "*-operator"
           # Get the number of active hours of the Notebook
-        - key: "{{  subtract('{{ time_now_utc().time_to_cron(@).split(@,' ') | [1].to_number(@) }}', '{{ request.object.status.containerState.running.startedAt |  time_to_cron(@).split(@,' ') | [1].to_number(@)) }}') }}"
+        - key: "{{ time_since('', '{{ request.object.status.containerState.running.startedAt }}', '') }}"
           operator: GreaterThan
-          value: 3
+          value: 3h
       mutate:
         patchesJson6902: |-
           - op: add
