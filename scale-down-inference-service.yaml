@@ -10,7 +10,6 @@ spec:
         resources:
           kinds:
             - InferenceService
-      /
         all:
           - key: "{{ time_since('', '{{ request.object.status.lastTransitionTime[0] }}', '') }}"
             operator: GreaterThanOrEquals
