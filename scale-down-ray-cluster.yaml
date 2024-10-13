@@ -1,6 +1,6 @@
 ---
 apiVersion: kyverno.io/v1
-kind: Cluster/
+kind: ClusterCleanupPolicy
 metadata:
   name: scale-down-ray-clusters
 spec:
