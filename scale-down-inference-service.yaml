@@ -1,0 +1,40 @@
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: scale-down-inference-service
+spec:
+  rules:
+    - name: scale-down-inference-service-if-time-greater-3h
+      match:
+        resources:
+          kinds:
+            - InferenceService
+      /
+        all:
+          - key: "{{ time_since('', '{{ request.object.status.lastTransitionTime[0] }}', '') }}"
+            operator: GreaterThanOrEquals
+            value: 3h
+          - key: "{{ request.object.metadata.namespace }}"
+            operator: AnyNotIn
+            value:
+              - "openshift-*" # add more namespace if needed
+              - "llm-hosting"
+              - "rhoai-bu-services"
+              - "cert-manager*"
+              - "kube-*"
+              - "knative*"
+              - "istio-system"
+              - "image-generation"
+              - "nvidia-gpu-operator"
+              - "redhat-ods-*"
+              - "rhods-notebooks"
+              - "*-operator"
+      mutate:
+        patchesJson6902: |-
+          - op: replace
+            path: /spec/predictor/maxReplicas
+            value: 0
+          - op: replace
+            path: /spec/predictor/minReplicas
+            value: 0

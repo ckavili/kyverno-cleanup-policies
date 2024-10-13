@@ -1,0 +1,36 @@
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: stop-pipeline
+spec:
+  rules:
+    - name: stop-pipeline-if-time-greater-3h
+      match:
+        resources:
+          kinds:
+            - Workflow
+        all:
+          - key: "{{ time_since('', '{{ request.object.status.lastTransitionTime[0] }}', '') }}"
+            operator: GreaterThanOrEquals
+            value: 3h
+          - key: "{{ request.object.metadata.namespace }}"
+            operator: AnyNotIn
+            value:
+              - "openshift-*" # add more namespace if needed
+              - "llm-hosting"
+              - "rhoai-bu-services"
+              - "cert-manager*"
+              - "kube-*"
+              - "knative*"
+              - "istio-system"
+              - "image-generation"
+              - "nvidia-gpu-operator"
+              - "redhat-ods-*"
+              - "rhods-notebooks"
+              - "*-operator"
+      mutate:
+        patchesJson6902: |-
+          - op: replace
+            path: /spec/metadata/labels/"workflows.argoproj.io/phase"
+            value: "Failed"
