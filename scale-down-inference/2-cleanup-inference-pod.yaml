@@ -2,7 +2,7 @@
 apiVersion: kyverno.io/v2beta1
 kind: ClusterCleanupPolicy
 metadata:
-  name: delete-notebook-pod
+  name: delete-inferenceservice-pod
 spec:
   match:
     any:
@@ -11,7 +11,7 @@ spec:
           - Pod
         selector:
           matchLabels:
-            opendatahub.io/workbenches: "true"
+            component: "predictor"
   conditions:
     any:
     - key: "{{ time_since('', '{{ request.object.metadata.creationTimestamp || '{{ time_now() }}' }}', '') }}"

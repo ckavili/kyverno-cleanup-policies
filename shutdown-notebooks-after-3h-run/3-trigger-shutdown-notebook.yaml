@@ -16,7 +16,7 @@ spec:
                 opendatahub.io/workbenches: "true"
             operations:
               - DELETE
-      mutate:
+      mutate: 
         targets:
         - apiVersion: kubeflow.org/v1
           kind: Notebook

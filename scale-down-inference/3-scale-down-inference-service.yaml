@@ -7,13 +7,17 @@ spec:
   rules:
     - name: scale-down-inference-service-if-time-greater-3h
       match:
-        resources:
-          kinds:
-            - InferenceService
+        any:
+        - resources:
+            kinds:
+              - Pod
+            selector:
+              matchLabels:
+                component: "predictor"
+            operations:
+              - DELETE
+      preconditions:
         all:
-          - key: "{{ time_since('', '{{ request.object.status.lastTransitionTime[0] }}', '') }}"
-            operator: GreaterThanOrEquals
-            value: 3h
           - key: "{{ request.object.metadata.namespace }}"
             operator: AnyNotIn
             value:
@@ -30,6 +34,11 @@ spec:
               - "rhods-notebooks"
               - "*-operator"
       mutate:
+        targets:
+        - apiVersion: serving.kserve.io/v1beta1
+          kind: InferenceService
+          name: "{{ request.object.metadata.labels.\"serving.kserve.io/inferenceservice\" }}"
+          namespace: "{{ request.object.metadata.namespace }}"
         patchesJson6902: |-
           - op: replace
             path: /spec/predictor/maxReplicas

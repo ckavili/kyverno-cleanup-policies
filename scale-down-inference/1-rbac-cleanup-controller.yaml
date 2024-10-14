@@ -24,11 +24,11 @@ metadata:
     app.kubernetes.io/component: background-controller
     app.kubernetes.io/instance: kyverno
     app.kubernetes.io/part-of: kyverno
-  name: kyverno:update-notebook
+  name: kyverno:update-inferenceservice
 rules:
 - apiGroups:
-  - kubeflow.org
+  - serving.kserve.io
   resources:
-  - notebooks
+  - inferenceservice
   verbs:
   - update
