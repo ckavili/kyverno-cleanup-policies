@@ -1,0 +1,20 @@
+---
+apiVersion: kyverno.io/v2beta1
+kind: ClusterCleanupPolicy
+metadata:
+  name: delete-workbench-pod
+spec:
+  match:
+    any:
+    - resources:
+        kinds:
+          - Pod
+        selector:
+          matchLabels:
+            opendatahub.io/workbenches: "true"
+  conditions:
+    any:
+    - key: "{{ time_since('', '{{ request.object.metadata.creationTimestamp || '{{ time_now() }}' }}', '') }}"
+      operator: GreaterThan
+      value: 3h
+  schedule: "*/5 * * * *"

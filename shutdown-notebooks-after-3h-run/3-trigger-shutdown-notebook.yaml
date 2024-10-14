@@ -1,0 +1,45 @@
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: shutdown-notebooks-after-3h-run
+spec:
+  rules:
+    - name: shutdown-notebooks-after-3h-run
+      match:
+        any:
+        - resources:
+            kinds:
+              - Pod
+            selector:
+              matchLabels:
+                opendatahub.io/workbenches: "true"
+            operations:
+              - DELETE
+      mutate:
+        targets:
+        - apiVersion: kubeflow.org/v1
+          kind: Notebook
+          name: "{{ request.object.metadata.ownerReferences[0].name }}"
+          namespace: "{{ request.object.metadata.namespace }}"
+        patchesJson6902: |-
+          - op: add
+            path: /metadata/annotations/kubeflow-resource-stopped
+            value: '{{ time_now_utc() }}'
+      preconditions:
+        all:
+        - key: "{{ request.object.metadata.namespace }}"
+          operator: AnyNotIn
+          value:
+            - "openshift-*" # add more namespace if needed
+            - "llm-hosting"
+            - "rhoai-bu-services"
+            - "cert-manager*"
+            - "kube-*"
+            - "knative*"
+            - "istio-system"
+            - "image-generation"
+            - "nvidia-gpu-operator"
+            - "redhat-ods-*"
+            - "rhods-notebooks"
+            - "*-operator"
