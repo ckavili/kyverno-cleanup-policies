@@ -13,8 +13,23 @@ spec:
           matchLabels:
             component: "predictor"
   conditions:
-    any:
+    all:
     - key: "{{ time_since('', '{{ request.object.metadata.creationTimestamp || '{{ time_now() }}' }}', '') }}"
       operator: GreaterThan
       value: 3h
+    - key: "{{ request.object.metadata.namespace }}"
+      operator: AnyNotIn
+      value:
+        - "openshift-*" # add more namespace if needed
+        - "llm-hosting"
+        - "rhoai-bu-services"
+        - "cert-manager*"
+        - "kube-*"
+        - "knative*"
+        - "istio-system"
+        - "image-generation"
+        - "nvidia-gpu-operator"
+        - "redhat-ods-*"
+        - "rhods-notebooks"
+        - "*-operator"
   schedule: "*/5 * * * *"
