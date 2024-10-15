@@ -14,10 +14,10 @@ spec:
             opendatahub.io/workbenches: "true"
   conditions:
     all:
-    - key: "{{ time_since('', '{{ request.object.metadata.creationTimestamp || '{{ time_now() }}' }}', '') }}"
+    - key: "{{ time_since('', '{{ target.metadata.creationTimestamp }}' }}', '') }}"
       operator: GreaterThan
       value: 3h
-    - key: "{{ request.object.metadata.namespace }}"
+    - key: "{{ target.metadata.namespace }}"
       operator: AnyNotIn
       value:
         - "openshift-*" # add more namespace if needed

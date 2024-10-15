@@ -1,5 +1,5 @@
 ---
-apiVersion: kyverno.io/v1
+apiVersion: kyverno.io/v2beta1
 kind: ClusterCleanupPolicy
 metadata:
   name: shutdown-ray-clusters
@@ -9,24 +9,24 @@ spec:
     - resources:
         kinds:
           - RayCluster
-      conditions:
-        all:
-          - key: "{{ time_since('', '{{ request.object.metadata.creationTimestamp }}', '') }}"
-            operator: GreaterThanOrEquals
-            value: 3h
-          - key: "{{ target.object.metadata.namespace }}"
-            operator: AnyNotIn
-            value:
-              - "openshift-*" # add more namespace if needed
-              - "llm-hosting"
-              - "rhoai-bu-services"
-              - "cert-manager*"
-              - "kube-*"
-              - "knative*"
-              - "istio-system"
-              - "image-generation"
-              - "nvidia-gpu-operator"
-              - "redhat-ods-*"
-              - "rhods-notebooks"
-              - "*-operator"
+  conditions:
+    all:
+      - key: "{{ time_since('', '{{ target.metadata.creationTimestamp }}', '') }}"
+        operator: GreaterThanOrEquals
+        value: 3h
+      - key: "{{ target.metadata.namespace }}"
+        operator: AnyNotIn
+        value:
+          - "openshift-*" # add more namespace if needed
+          - "llm-hosting"
+          - "rhoai-bu-services"
+          - "cert-manager*"
+          - "kube-*"
+          - "knative*"
+          - "istio-system"
+          - "image-generation"
+          - "nvidia-gpu-operator"
+          - "redhat-ods-*"
+          - "rhods-notebooks"
+          - "*-operator"
   schedule: "0 * * * *" # every hour
